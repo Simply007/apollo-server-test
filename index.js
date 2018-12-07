@@ -31,6 +31,12 @@ type Asset {
   description: String
   url: String,
 }
+type Link {
+  codename: String
+  itemID: String
+  urlSlug: String
+  type: String
+}
 type TextElement {
   type: String!
   name: String!
@@ -73,15 +79,12 @@ type AssetElement {
   value: String
   assets: [Asset]
 }
-type ModularContentElement {
-  value: [ContentItem]
-}
 type RichTextElement {
   type: String!
   name: String!
   value: String
-  modular_content: [String]
-  links: [String]
+  linkedItemCodenames: [String]
+  links: [Link]
 }
 
 type AboutUsContentType implements ContentItem {
@@ -142,7 +145,7 @@ type ArticleContentType implements ContentItem {
   metadata__twitter_description: TextElement
   meta_description: TextElement
   metadata__og_image: AssetElement
-  related_articles: ModularContentElement
+  related_articles: [ContentItem]
   url_pattern: UrlSlugElement
 }
 
@@ -247,12 +250,12 @@ type HomeContentType implements ContentItem {
   metadata__og_description: TextElement
   metadata__meta_title: TextElement
   metadata__og_title: TextElement
-  articles: ModularContentElement
-  hero_unit: ModularContentElement
+  articles: [ContentItem]
+  hero_unit: [ContentItem]
   metadata__meta_description: TextElement
   metadata__twitter_site: TextElement
-  our_story: ModularContentElement
-  cafes: ModularContentElement
+  our_story: [ContentItem]
+  cafes: [ContentItem]
   metadata__twitter_image: AssetElement
   metadata__twitter_creator: TextElement
   metadata__twitter_title: TextElement
@@ -291,7 +294,7 @@ type TweetContentType implements ContentItem {
   # (A "Mutation" type will be covered later on.)
   type Query {
     items: [ContentItem],
-    itemsByType(type: String!): [ArticleContentType]
+    itemsByType(type: String!): [ContentItem]
   }
 `;
 
@@ -316,7 +319,6 @@ const resolvers = {
 
     items: async () => {
       const response = await deliveryClient.items()
-        .depthParameter(5)
         .getPromise();
       return response.items;
     },
